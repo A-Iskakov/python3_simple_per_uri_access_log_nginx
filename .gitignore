@@ -1,0 +1,7 @@
+__pycache__/
+backups/
+.vscode/
+venv/
+venv_nonvsc/
+docs/_build/
+.idea/

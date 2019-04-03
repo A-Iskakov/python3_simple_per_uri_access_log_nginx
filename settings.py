@@ -1,0 +1,16 @@
+SYSLOG_HOST = "0.0.0.0"
+SYSLOG_PORT = 12000
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+REDIS_DB_NUMBER = 10
+MONGO_HOST = 'localhost'
+MONGO_PORT = 27017
+CACHE_TIMEOUT = 5
+TOP_MOST_ACCESSED_URIS = 5
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'no-reply@gmail.com'
+EMAIL_HOST_PASSWORD = 'idasdsdsddasdlo'
+EMAIL_PORT = '465'
+EMAIL_USE_SSL = True
+DEFAULT_FROM_EMAIL = f'your_name <{EMAIL_HOST_USER}>'
+ADMIN_EMAILS = ['email@gmail.com']
