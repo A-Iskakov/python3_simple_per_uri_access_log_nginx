@@ -6,7 +6,7 @@ import asyncio
 from time import sleep
 from redis import Redis
 from pymongo import MongoClient
-from settings import *
+from settings import REDIS_HOST, REDIS_PORT, REDIS_DB_NUMBER, MONGO_HOST, MONGO_PORT, SYSLOG_HOST, SYSLOG_PORT, CACHE_TIMEOUT
 
 
 class MongoDatabase:
