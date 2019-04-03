@@ -22,6 +22,7 @@ Usage
 -----
 
 ### Install Nginx server
+
     echo "deb http://nginx.org/packages/ubuntu/ bionic nginx" | sudo tee /etc/apt/sources.list.d/nginx.list
     echo "deb-src http://nginx.org/packages/ubuntu/ bionic nginx" | sudo tee /etc/apt/sources.list.d/nginx.list
     wget https://nginx.org/keys/nginx_signing.key -O - | sudo apt-key add -
