@@ -41,11 +41,13 @@ Install Nginx server
 
 
 
-    log_format json_combined escape=json
-          '{'
-              '"request":"$request"'
-          '}';
-    access_log syslog:server=127.0.0.1:12000,nohostname json_combined;
+```shell
+log_format json_combined escape=json
+'{'
+'"request":"$request"'
+'}';
+access_log syslog:server=127.0.0.1:12000,nohostname json_combined;
+```
 
 **Restart nginx**
 
@@ -132,16 +134,16 @@ To activate the systemd service execute following commands.
 **Create temp dir for service**
 
 
-``sh
+```bash
 echo "d /run/nginx-stats 0755 ubuntu ubuntu -" | sudo tee /etc/tmpfiles.d/nginx-stats.conf
-``
+```
 
 
 
 **Launch service**
 
 
-```sh
+```shell
 sudo systemctl enable nginx-stats.service
 sudo systemctl start nginx-stats.service
 sudo systemctl status nginx-stats.service
