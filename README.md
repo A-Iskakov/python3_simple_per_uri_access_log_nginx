@@ -61,6 +61,7 @@ Install Mongodb
     echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
     sudo apt-get update
     sudo apt-get install -y mongodb-org
+    sudo systemctl enable mongod.service
     sudo service mongod start
     sudo cat /var/log/mongodb/mongod.log | grep waiting
 
