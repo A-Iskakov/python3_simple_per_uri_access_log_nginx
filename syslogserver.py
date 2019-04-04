@@ -85,13 +85,12 @@ def syslog_server_coroutine():
 
 def cache_to_db_coroutine():
     print('cache-database writing service coroutine has started')
-    main_cache.flush_cache()
     while True:
         sleep(CACHE_TIMEOUT)
         data_from_cache = main_cache.cache_to_dict()
         if data_from_cache:
-            main_mongo.write_to_db(data_from_cache)
             main_cache.flush_cache()
+            main_mongo.write_to_db(data_from_cache)
             print(len(data_from_cache), 'keys has been writen')
 
 
