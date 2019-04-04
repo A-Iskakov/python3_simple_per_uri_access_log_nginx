@@ -1,12 +1,15 @@
+import asyncio
 import json
 import socketserver
 from concurrent.futures.process import ProcessPoolExecutor
 from datetime import date
-import asyncio
 from time import sleep
-from redis import Redis
+
 from pymongo import MongoClient
-from settings import REDIS_HOST, REDIS_PORT, REDIS_DB_NUMBER, MONGO_HOST, MONGO_PORT, SYSLOG_HOST, SYSLOG_PORT, CACHE_TIMEOUT
+from redis import Redis
+
+from settings import REDIS_HOST, REDIS_PORT, REDIS_DB_NUMBER, MONGO_HOST, MONGO_PORT, SYSLOG_HOST, SYSLOG_PORT, \
+    CACHE_TIMEOUT
 
 
 class MongoDatabase:
@@ -91,7 +94,7 @@ def cache_to_db_coroutine():
         if data_from_cache:
             main_cache.flush_cache()
             main_mongo.write_to_db(data_from_cache)
-            print(len(data_from_cache), 'keys has been writen')
+            # print(len(data_from_cache), 'keys has been writen')
 
 
 if __name__ == "__main__":

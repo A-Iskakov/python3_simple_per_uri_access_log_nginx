@@ -148,3 +148,16 @@ sudo systemctl enable nginx-stats.service
 sudo systemctl start nginx-stats.service
 sudo systemctl status nginx-stats.service
 ```
+
+Set email notifications
+-----------------------
+
+```sh
+crontab -e
+```
+
+**Insert following to get stats at 23:30 everyday**
+
+```sh
+30 23 * * * ubuntu /usr/local/bin/python3 /home/ubuntu/per_uri_stats/python3_simple_per_uri_access_log_nginx/send_email_stats.py
+```
