@@ -1,5 +1,5 @@
 
-Simple per-uri Access Log for Nginx
+Simple per-uri Access Stats for Nginx
 ===================================
 
 Python 3 implementation of a simple UDP syslog server which gets uri access data from nginx server and increments stats data into a MongoDB database.
