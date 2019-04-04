@@ -43,7 +43,7 @@ class RedisCache:
         cache_data = {}
 
         for key in self.redis_client.keys():
-            cache_data.update({key: self.redis_client.get(key)})
+            cache_data.update({key.replace('.', '\\'): self.redis_client.get(key)})
         return cache_data
 
     def flush_cache(self):

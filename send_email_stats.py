@@ -16,6 +16,7 @@ class MongoDatabase:
         self.mongo_client = MongoClient(MONGO_HOST, MONGO_PORT, connect=False)
         self.mongo_db = self.mongo_client['nginx_stats']
         self.mongo_collection = self.mongo_db['per_uri_access_stats']
+        self.mongo_collection.delete_many({})
 
     def get_data_from_db(self, filter):
         """
@@ -29,6 +30,7 @@ class MongoDatabase:
 if __name__ == "__main__":
     my_mongo = MongoDatabase()
     today = date.today()
+
     data = my_mongo.get_data_from_db(today.strftime("%d_%m_%y"))
     to_send = False
     text_message = ''
