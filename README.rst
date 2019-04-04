@@ -131,16 +131,18 @@ To activate the systemd service execute following commands.
 
 **Create temp dir for service**
 
-```sh
-$ echo "d /run/nginx-stats 0755 ubuntu ubuntu -" | sudo tee /etc/tmpfiles.d/nginx-stats.conf
-```
+
+``sh
+echo "d /run/nginx-stats 0755 ubuntu ubuntu -" | sudo tee /etc/tmpfiles.d/nginx-stats.conf
+``
 
 
 
 **Launch service**
 
+
 ```sh
-$ sudo systemctl enable nginx-stats.service
-$ sudo systemctl start nginx-stats.service
-$ sudo systemctl status nginx-stats.service
+sudo systemctl enable nginx-stats.service
+sudo systemctl start nginx-stats.service
+sudo systemctl status nginx-stats.service
 ```
