@@ -3,6 +3,7 @@ import json
 import socketserver
 from concurrent.futures.process import ProcessPoolExecutor
 from datetime import date
+from sys import stdout
 from time import sleep
 
 from pymongo import MongoClient
@@ -80,14 +81,15 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
 
 def syslog_server_coroutine():
     server = socketserver.UDPServer((SYSLOG_HOST, SYSLOG_PORT), SyslogUDPHandler)
-    print('Syslog Server coroutine has started ')
+
+    stdout.write('Syslog Server coroutine has started\n')
 
     # handle requests until explicit shutdown(), see python docs
     server.serve_forever()
 
 
 def cache_to_db_coroutine():
-    print('cache-database writing service coroutine has started')
+    stdout.write('cache-database writing service coroutine has started\n')
     while True:
         sleep(CACHE_TIMEOUT)
         data_from_cache = main_cache.cache_to_dict()

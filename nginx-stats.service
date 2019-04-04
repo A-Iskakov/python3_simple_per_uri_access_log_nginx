@@ -5,7 +5,9 @@ After = network.target
 
 [Service]
 PIDFile = /run/nginx-stats/pid
+PermissionsStartOnly = True
 RuntimeDirectory = nginx-stats
+RuntimeDirectoryMode = 0775
 WorkingDirectory = /home/ubuntu/per_uri_stats/python3_simple_per_uri_access_log_nginx
 ExecStart = /usr/local/bin/python3 syslogserver.py
 ExecReload = /bin/kill -s HUP $MAINPID
