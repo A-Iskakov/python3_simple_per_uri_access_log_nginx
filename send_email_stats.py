@@ -2,6 +2,7 @@ import smtplib
 from datetime import date, timedelta
 from email.mime.text import MIMEText
 from heapq import nlargest
+from pprint import pprint
 
 from pymongo import MongoClient
 
@@ -31,6 +32,7 @@ if __name__ == "__main__":
     data = my_mongo.get_data_from_db(today.strftime("%d_%m_%y"))
     to_send = False
     text_message = ''
+    pprint(data)
     if data is not None:
         to_send = True
         data.pop('_id')
