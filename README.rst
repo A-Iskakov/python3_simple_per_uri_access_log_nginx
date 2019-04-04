@@ -20,8 +20,8 @@ Example guide based on Ubuntu 18.04 installation
 Usage
 -----
 
-### Install Nginx server
-
+Install Nginx server
+--------------------
 
     echo "deb http://nginx.org/packages/ubuntu/ bionic nginx" | sudo tee /etc/apt/sources.list.d/nginx.list
     echo "deb-src http://nginx.org/packages/ubuntu/ bionic nginx" | sudo tee /etc/apt/sources.list.d/nginx.list
@@ -31,7 +31,7 @@ Usage
 
 
 
-Then modify the default parameters in the ``settings.py`` to set nginx access_log
+**Then modify the default parameters in the ``settings.py`` to set nginx access_log**
 
 
     sudo nano /etc/nginx/nginx.conf
@@ -52,8 +52,8 @@ Then modify the default parameters in the ``settings.py`` to set nginx access_lo
 
     sudo nginx -s reload
 
-### Install Mongodb
-
+Install Mongodb
+---------------
 
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
     echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
@@ -65,8 +65,8 @@ Then modify the default parameters in the ``settings.py`` to set nginx access_lo
 
 
 
-### Install Redis
-
+Install Redis
+-------------
     sudo apt install redis
 
 
@@ -84,7 +84,8 @@ Then modify the default parameters in the ``settings.py`` to set nginx access_lo
 
 
 
-### Getting source from the git
+Getting source from the git
+---------------------------
 
 Install the required ``requirements.txt`` in the global Python 3
 environment or in a virtual Python 3 environment. The latter has the advantage that
@@ -109,7 +110,8 @@ just be deleted and created from scratch again.
     python3 syslogserver.py
 
 
-### Systemd service
+Systemd service
+---------------
 
 An example `nginx-stats.service` is also included to show how to run the syslog server
 as a systemd service at startup.
@@ -129,13 +131,15 @@ To activate the systemd service execute following commands.
 
 **Create temp dir for service**
 
-    echo "d /run/nginx-stats 0755 ubuntu ubuntu -" | sudo tee /etc/tmpfiles.d/nginx-stats.conf
+```sh
+echo "d /run/nginx-stats 0755 ubuntu ubuntu -" | sudo tee /etc/tmpfiles.d/nginx-stats.conf
+```
+
 
 
 **Launch service**
-
-    sudo systemctl enable nginx-stats.service
-
-    sudo systemctl start nginx-stats.service
-
-    sudo systemctl status nginx-stats.service
+```sh
+sudo systemctl enable nginx-stats.service
+sudo systemctl start nginx-stats.service
+sudo systemctl status nginx-stats.service
+```
