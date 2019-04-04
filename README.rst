@@ -22,67 +22,66 @@ Usage
 
 ### Install Nginx server
 
-```bash
-echo "deb http://nginx.org/packages/ubuntu/ bionic nginx" | sudo tee /etc/apt/sources.list.d/nginx.list
-echo "deb-src http://nginx.org/packages/ubuntu/ bionic nginx" | sudo tee /etc/apt/sources.list.d/nginx.list
-wget https://nginx.org/keys/nginx_signing.key -O - | sudo apt-key add -
-sudo apt-get update
-sudo apt-get install nginx
-```
+
+    echo "deb http://nginx.org/packages/ubuntu/ bionic nginx" | sudo tee /etc/apt/sources.list.d/nginx.list
+    echo "deb-src http://nginx.org/packages/ubuntu/ bionic nginx" | sudo tee /etc/apt/sources.list.d/nginx.list
+    wget https://nginx.org/keys/nginx_signing.key -O - | sudo apt-key add -
+    sudo apt-get update
+    sudo apt-get install nginx
+
 
 
 Then modify the default parameters in the ``settings.py`` to set nginx access_log
 
-```bash
-sudo nano /etc/nginx/nginx.conf
-```
+
+    sudo nano /etc/nginx/nginx.conf
+
 
 **Insert following**
 
 
-```nginx
-log_format json_combined escape=json
-      '{'
-          '"request":"$request"'
-      '}';
-access_log syslog:server=127.0.0.1:12000,nohostname json_combined;
-```
+
+    log_format json_combined escape=json
+          '{'
+              '"request":"$request"'
+          '}';
+    access_log syslog:server=127.0.0.1:12000,nohostname json_combined;
+
 **Restart nginx**
 
-```bash
-sudo nginx -s reload
-```
+
+    sudo nginx -s reload
+
 ### Install Mongodb
 
-```bash
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
-echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
-sudo apt-get update
-sudo apt-get install -y mongodb-org
-sudo service mongod start
-sudo cat /var/log/mongodb/mongod.log | grep waiting
-```
+
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
+    echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
+    sudo apt-get update
+    sudo apt-get install -y mongodb-org
+    sudo service mongod start
+    sudo cat /var/log/mongodb/mongod.log | grep waiting
+
 
 
 
 ### Install Redis
 
-```bash
-sudo apt install redis
-```
+    sudo apt install redis
+
 
 **You can also set maxmemory policy in redis.conf if want to**
 
-```bash
-sudo nano /etc/redis/redis.conf
-```
+
+    sudo nano /etc/redis/redis.conf
+
 **Insert following**
 
-```bash
-supervised systemd
-maxmemory 1500mb
-maxmemory-policy allkeys-lru
-```
+
+    supervised systemd
+    maxmemory 1500mb
+    maxmemory-policy allkeys-lru
+
 
 
 ### Getting source from the git
@@ -91,88 +90,52 @@ Install the required ``requirements.txt`` in the global Python 3
 environment or in a virtual Python 3 environment. The latter has the advantage that
 the packages are isolated from other projects and also from the system wide
 installed global once. If things get messed up, the virtual environment can
-just be deleted and created from scratch again. For more informations about
-virtual environments in Python 3, see venv1_ and venv2_ .
+just be deleted and created from scratch again.
+
+    cd ~
+    mkdir per_uri_stats
+    cd per_uri_stats
+    git clone https://github.com/A-Iskakov/python3_simple_per_uri_access_log_nginx
+    sudo pip3 install -r requirements.txt
 
 
 
-```bash
-cd ~
-mkdir per_uri_stats
-cd per_uri_stats
-git clone https://github.com/A-Iskakov/python3_simple_per_uri_access_log_nginx
-sudo pip3 install -r requirements.txt
-```
+**Then modify the default parameters in the ``settings.py``.**
 
+    nano settings.py
 
-Then modify the default parameters in the ``settings.py``.
-
-
+**Launch syslog server**
 
     python3 syslogserver.py
 
-Or use e.g. tmux_ to execute it in the background.
 
-Systemd service
-^^^^^^^^^^^^^^^
+### Systemd service
 
-An example .service file is also included to show how to run the syslog server
-as a systemd service at startup. For more informations, see `systemd.service`_ .
+An example `nginx-stats.service` is also included to show how to run the syslog server
+as a systemd service at startup.
 In the example .service file a virtual Python 3 environment is used to execute
 the script. The local user name and the path to the virtual Python 3 environment
 needs to be adjusted before it can be used.
 
 To activate the systemd service execute following commands.
 
-.. code-block:: console
+**Modify the default parameters in the `nginx-stats.service`.**
 
-    sudo nano /etc/systemd/system/celery-beat.service
-    ---->>
+    nano nginx-stats.service
 
-    [Unit]
-    
-    Description=nginx-stats daemon
-    
-    After=network.target
-    
-    [Service]
-    
-    PIDFile=/run/nginx-stats/pid
-    
-    User=ubuntu
-    
-    Group=ubuntu
-    
-    RuntimeDirectory=nginx-stats
-    
-    WorkingDirectory=/home/ubuntu/per_uri_stats
-    
-    ExecStart=/usr/local/bin/python3 syslogserver.py
+**Copy to systemd dir**
 
-    ExecReload=/bin/kill -s HUP $MAINPID
-    
-    ExecStop=/bin/kill -s TERM $MAINPID
-    
-    PrivateTmp=true
-    
-    [Install]
-    
-    WantedBy=multi-user.target
-    <<----
+    sudo cp nginx-stats.service /etc/systemd/system/
+
+**Create temp dir for service**
+
+    echo "d /run/nginx-stats 0755 ubuntu ubuntu -" | sudo tee /etc/tmpfiles.d/nginx-stats.conf
 
 
+**Launch service**
 
-    sudo nano /etc/tmpfiles.d/nginx-stats.conf
-    ---->>
+    sudo systemctl enable nginx-stats.service
 
-    d /run/nginx-stats 0755 ubuntu ubuntu -
-    <<----
+    sudo systemctl start nginx-stats.service
 
-
-**Запускаем сервисы** 
-
-    sudo systemctl enable celery-beat.service
-    
-    sudo systemctl start celery-beat.service
-    
-    sudo systemctl status celery-beat.service
+    sudo systemctl status nginx-stats.service
