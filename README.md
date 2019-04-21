@@ -150,15 +150,23 @@ sudo systemctl start nginx-stats.service
 sudo systemctl status nginx-stats.service
 ```
 
-Set email notifications
+Set telegram notifications
 -----------------------
+Register new bot using <a href="https://telegram.me/BotFather" target="_blank">BotFather</a>
+
+Insert gathered token into `settings.py`
+
+Insert into `server {}` directive inside nginx conf following code:
 
 ```sh
-crontab -e
+location /<TELEGRAM TOKEN> {
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_redirect off;
+        proxy_buffering off;
+        access_log off;
+        proxy_pass http://127.0.0.1:8001;
+    }
 ```
 
-**Insert following to get stats at 23:30 everyday**
-
-```sh
-30 23 * * * ubuntu /usr/local/bin/python3 /home/ubuntu/per_uri_stats/python3_simple_per_uri_access_log_nginx/send_email_stats.py
-```
+Remember you need to set nginx server with HTTPS SSL

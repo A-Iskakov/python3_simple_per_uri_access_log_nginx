@@ -2,60 +2,17 @@ import asyncio
 import json
 import socketserver
 from concurrent.futures.process import ProcessPoolExecutor
-from datetime import date
+from datetime import time
 from sys import stdout
 from time import sleep
 
-from pymongo import MongoClient
-from redis import Redis
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-from settings import REDIS_HOST, REDIS_PORT, REDIS_DB_NUMBER, MONGO_HOST, MONGO_PORT, SYSLOG_HOST, SYSLOG_PORT, \
-    CACHE_TIMEOUT
-
-
-class MongoDatabase:
-
-    def __init__(self):
-        self.mongo_client = MongoClient(MONGO_HOST, MONGO_PORT, connect=False)
-        self.mongo_db = self.mongo_client['nginx_stats']
-        self.mongo_collection = self.mongo_db['per_uri_access_stats']
-
-    def write_to_db(self, dict_to_write):
-        self.mongo_collection.update_one(
-            {'_id': date.today().strftime("%d_%m_%y")},
-            {'$inc': dict_to_write},
-            upsert=True)
-
-
-class RedisCache:
-    def __init__(self, redis_host=REDIS_HOST, redis_port=REDIS_PORT, db_number=REDIS_DB_NUMBER):
-        self.redis_client = Redis(host=redis_host, port=redis_port, db=db_number, decode_responses=True)
-        self.redis_client.set_response_callback('GET', int)
-
-    def write_to_cache(self, accessed_uri):
-        """
-        :type accessed_uri: str
-        """
-
-        self.redis_client.incrby(accessed_uri)
-
-    def cache_to_dict(self):
-        """
-
-        :rtype: dict
-        """
-        cache_data = {}
-
-        for key in self.redis_client.keys():
-            cache_data.update({key.replace('.', '\\'): self.redis_client.get(key)})
-        return cache_data
-
-    def flush_cache(self):
-        return self.redis_client.flushdb()
-
-
-main_mongo = MongoDatabase()
-main_cache = RedisCache()
+from cache import MAIN_CACHE
+from database import MAIN_MONGO
+from settings import SYSLOG_HOST, SYSLOG_PORT, \
+    CACHE_TIMEOUT, TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_USE_WEBHOOK, TELEGRAM_BOT_EXTERNAL_URL
+from telegram_bot import send_stats_on_schedule, start, echo, send_statistics, auth_command
 
 
 # https://docs.python.org/3/library/socketserver.html
@@ -76,7 +33,7 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
         # get uri from request
         accessed_uri = json_data['request'].split()[1]
 
-        main_cache.write_to_cache(accessed_uri)
+        MAIN_CACHE.write_to_cache(accessed_uri)
 
 
 def syslog_server_coroutine():
@@ -92,18 +49,52 @@ def cache_to_db_coroutine():
     stdout.write('cache-database writing service coroutine has started\n')
     while True:
         sleep(CACHE_TIMEOUT)
-        data_from_cache = main_cache.cache_to_dict()
+        data_from_cache = MAIN_CACHE.cache_to_dict()
         if data_from_cache:
-            main_cache.flush_cache()
-            main_mongo.write_to_db(data_from_cache)
+            MAIN_CACHE.flush_cache()
+            MAIN_MONGO.write_cache_to_db(data_from_cache)
             # print(len(data_from_cache), 'keys has been writen')
 
 
+def telegram_bot_coroutine():
+    updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
+    job_queue = updater.job_queue
+
+    # job_minute = job_queue.run_repeating(callback_minute, interval=60, first=0)
+    job_queue.run_daily(send_stats_on_schedule, time(23, 55))
+    # add handlers
+
+    dispatcher = updater.dispatcher
+
+    start_handler = CommandHandler('start', start, pass_args=True)
+    dispatcher.add_handler(start_handler)
+
+    echo_handler = MessageHandler(Filters.text, echo)
+    dispatcher.add_handler(echo_handler)
+
+    auth_handler = CommandHandler('auth', auth_command, pass_args=True)
+    dispatcher.add_handler(auth_handler)
+
+    send_stats_handler = CommandHandler('stats', send_statistics)
+    dispatcher.add_handler(send_stats_handler)
+
+    if TELEGRAM_BOT_USE_WEBHOOK:
+        # set up webhook
+        updater.start_webhook(listen='127.0.0.1', port=8001, url_path=TELEGRAM_BOT_TOKEN)
+        updater.bot.set_webhook(url=f'{TELEGRAM_BOT_EXTERNAL_URL}/{TELEGRAM_BOT_TOKEN}')
+    else:
+        # if webhook couldn't be set up
+        updater.start_polling()
+
+    stdout.write(f'Telegram bot coroutine has started\n{updater.bot.get_me()}\n')
+    updater.idle()
+
+
 if __name__ == "__main__":
-    executor = ProcessPoolExecutor(2)
+    executor = ProcessPoolExecutor(3)
     loop = asyncio.get_event_loop()
     asyncio.ensure_future(loop.run_in_executor(executor, syslog_server_coroutine))
     asyncio.ensure_future(loop.run_in_executor(executor, cache_to_db_coroutine))
+    asyncio.ensure_future(loop.run_in_executor(executor, telegram_bot_coroutine))
 
     loop.run_forever()
-
