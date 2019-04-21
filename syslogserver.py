@@ -28,7 +28,7 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
         json_begin_index = self.request[0].find(b'{')
 
         # format binary to JSON
-        json_data = json.loads(self.request[0][json_begin_index:])
+        json_data = json.loads(self.request[0][json_begin_index:].encode('utf-8').strip())
 
         # get uri from request
         accessed_uri = json_data['request'].split()[1]
