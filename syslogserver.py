@@ -1,11 +1,11 @@
 import asyncio
-import json
 import socketserver
 from concurrent.futures.process import ProcessPoolExecutor
 from datetime import time
 from sys import stdout
 from time import sleep
 
+import ujson
 from telegram.ext import Updater, CommandHandler
 
 from cache import MAIN_CACHE
@@ -28,7 +28,7 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
         json_begin_index = self.request[0].find(b'{')
 
         # format binary to JSON
-        json_data = json.loads(self.request[0][json_begin_index:].encode('utf-8').strip())
+        json_data = ujson.loads(self.request[0][json_begin_index:].decode())
 
         # get uri from request
         accessed_uri = json_data['request'].split()[1]
