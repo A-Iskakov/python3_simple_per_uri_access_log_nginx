@@ -6,4 +6,5 @@ venv_nonvsc/
 docs/_build/
 .idea/
 /settings.py
+
 settings.py
