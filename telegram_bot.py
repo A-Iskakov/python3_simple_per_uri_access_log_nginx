@@ -55,13 +55,6 @@ def send_stats_on_schedule(context):
                                      parse_mode=ParseMode.HTML)
 
 
-@send_typing_action_decorator
-def echo(update, context):
-    print(update.message)
-
-    print(update.message.reply_text(
-        f'<b>{update.message.text}</b> <i>{update.message.text}</i> <a href="http://google.com">{update.message.text}</a>.',
-        parse_mode=ParseMode.HTML))
 
 
 @send_typing_action_decorator
@@ -95,7 +88,6 @@ def auth_command(update, context):
 @send_typing_action_decorator
 @restricted_decorator
 def send_statistics(update, context):
-    print('2nd')
     text_message = gather_statistics_from_db()
 
     if text_message:

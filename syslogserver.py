@@ -6,13 +6,13 @@ from datetime import time
 from sys import stdout
 from time import sleep
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler
 
 from cache import MAIN_CACHE
 from database import MAIN_MONGO
 from settings import SYSLOG_HOST, SYSLOG_PORT, \
     CACHE_TIMEOUT, TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_USE_WEBHOOK, TELEGRAM_BOT_EXTERNAL_URL
-from telegram_bot import send_stats_on_schedule, start, echo, send_statistics, auth_command
+from telegram_bot import send_stats_on_schedule, start, send_statistics, auth_command
 
 
 # https://docs.python.org/3/library/socketserver.html
@@ -68,9 +68,6 @@ def telegram_bot_coroutine():
 
     start_handler = CommandHandler('start', start, pass_args=True)
     dispatcher.add_handler(start_handler)
-
-    echo_handler = MessageHandler(Filters.text, echo)
-    dispatcher.add_handler(echo_handler)
 
     auth_handler = CommandHandler('auth', auth_command, pass_args=True)
     dispatcher.add_handler(auth_handler)
