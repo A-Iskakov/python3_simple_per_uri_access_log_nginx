@@ -8,7 +8,7 @@ from database import MAIN_MONGO
 from settings import TELEGRAM_BOT_AUTH_CODE, TOP_MOST_ACCESSED_URIS, USE_FIRESTORE
 
 if USE_FIRESTORE:
-    from cloud_firestore import FirestoreData
+    from cloud_firestore import FirestoreData, FireStoreStats
 
 
 # secure bot from Unauthorized access
@@ -58,8 +58,10 @@ def send_stats_on_schedule(context):
                                      parse_mode=ParseMode.HTML)
     if USE_FIRESTORE:
         stat_data = FirestoreData().get_data_from_firestore()
+        messages_data = FireStoreStats().get_stats_from_firestore()
         if stat_data:
             text_message = '<b>Here is usage stats:</b>\n'
+            text_message += f'<b>{messages_data}</b> <i>chat messages sent last 24 hours</i>\n'
             for stat, value in stat_data.items():
                 text_message += f'<i>{stat}</i> - <b>{value}</b>\n'
             for user_id in MAIN_MONGO.get_telegram_data_from_db().get('ids', None):
@@ -71,21 +73,20 @@ def send_stats_on_schedule(context):
 @send_typing_action_decorator
 def auth_command(update, context):
     telegram_data = MAIN_MONGO.get_telegram_data_from_db()
-
+    custom_keyboard = [
+        [KeyboardButton(text="/stats")]
+    ]
+    reply_markup_general = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
     if telegram_data is not None:
         if update.effective_user.id in telegram_data['ids']:
             context.bot.send_animation(update.message.chat_id,
                                        'https://media.tenor.com/videos/3ee8a323ada0cf64981db3fff949d4a3/mp4')
-            update.message.reply_text("You are already authorized")
+            update.message.reply_text("You are already authorized", reply_markup=reply_markup_general)
             return None
     if context.args:
         if context.args[0] == TELEGRAM_BOT_AUTH_CODE:
             MAIN_MONGO.write_telegram_user_to_db(update.effective_user.id)
 
-            custom_keyboard = [
-                [KeyboardButton(text="/stats")]
-            ]
-            reply_markup_general = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
             context.bot.send_animation(update.message.chat_id,
                                        'https://media.tenor.com/videos/a06cb0f71bb7946e8a145cea6dcf48b8/mp4')
             update.message.reply_text(
@@ -109,8 +110,10 @@ def send_statistics(update, context):
     context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.TYPING)
     if USE_FIRESTORE:
         stat_data = FirestoreData().get_data_from_firestore()
+        messages_data = FireStoreStats().get_stats_from_firestore()
         if stat_data:
             text_message = '<b>Here is usage stats:</b>\n'
+            text_message += f'<b>{messages_data}</b> <i>chat messages sent last 24 hours</i>\n'
             for stat, value in stat_data.items():
                 text_message += f'<i>{stat}</i> - <b>{value}</b>\n'
 

@@ -9,3 +9,4 @@ docs/_build/
 
 settings.py
 firestore.json
+mploy-eur-firebase.json

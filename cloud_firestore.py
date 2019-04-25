@@ -1,6 +1,8 @@
 from datetime import date
 
 from google.cloud import firestore
+from google.cloud.monitoring_v3 import MetricServiceClient
+from google.cloud.monitoring_v3.query import Query
 
 
 class FirestoreData:
@@ -33,3 +35,19 @@ class FirestoreData:
                 result.update(
                     {'employee_session_duration': f'{round(result["employee_session_duration"] / 60000, 1)} mins'})
         return result
+
+
+class FireStoreStats:
+    def __init__(self):
+        self.client = MetricServiceClient.from_service_account_json('mploy-eur-firebase.json')
+
+    def get_stats_from_firestore(self):
+        count = 0
+        for item in Query(self.client,
+                          'mploy-eur',
+                          'firestore.googleapis.com/document/write_count',
+                          hours=24
+                          ).align('ALIGN_SUM', hours=24).iter():
+            count += item.points[0].value.int64_value
+
+        return count
