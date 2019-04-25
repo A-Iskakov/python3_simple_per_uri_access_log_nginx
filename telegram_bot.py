@@ -5,7 +5,10 @@ from heapq import nlargest
 from telegram import ChatAction, KeyboardButton, ReplyKeyboardMarkup, ParseMode
 
 from database import MAIN_MONGO
-from settings import TELEGRAM_BOT_AUTH_CODE, TOP_MOST_ACCESSED_URIS
+from settings import TELEGRAM_BOT_AUTH_CODE, TOP_MOST_ACCESSED_URIS, USE_FIRESTORE
+
+if USE_FIRESTORE:
+    from cloud_firestore import FirestoreData
 
 
 # secure bot from Unauthorized access
@@ -53,8 +56,16 @@ def send_stats_on_schedule(context):
             context.bot.send_message(chat_id=user_id,
                                      text=text_message,
                                      parse_mode=ParseMode.HTML)
-
-
+    if USE_FIRESTORE:
+        stat_data = FirestoreData().get_data_from_firestore()
+        if stat_data:
+            text_message = '<b>Here is usage stats:</b>\n'
+            for stat, value in stat_data.items():
+                text_message += f'<i>{stat}</i> - <b>{value}</b>\n'
+            for user_id in MAIN_MONGO.get_telegram_data_from_db().get('ids', None):
+                context.bot.send_message(chat_id=user_id,
+                                         text=text_message,
+                                         parse_mode=ParseMode.HTML)
 
 
 @send_typing_action_decorator
@@ -94,9 +105,18 @@ def send_statistics(update, context):
         update.message.reply_text(
             text_message,
             parse_mode=ParseMode.HTML)
-        return None
-    update.message.reply_text(
-        'Nothing to be sent')
+
+    context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.TYPING)
+    if USE_FIRESTORE:
+        stat_data = FirestoreData().get_data_from_firestore()
+        if stat_data:
+            text_message = '<b>Here is usage stats:</b>\n'
+            for stat, value in stat_data.items():
+                text_message += f'<i>{stat}</i> - <b>{value}</b>\n'
+
+            update.message.reply_text(
+                text_message,
+                parse_mode=ParseMode.HTML)
 
 
 def gather_statistics_from_db():

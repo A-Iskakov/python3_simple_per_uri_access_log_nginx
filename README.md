@@ -165,6 +165,8 @@ location /<TELEGRAM TOKEN> {
         proxy_redirect off;
         proxy_buffering off;
         access_log off;
+        log_subrequest off;
+        log_not_found off;
         proxy_pass http://127.0.0.1:8001;
     }
 ```
