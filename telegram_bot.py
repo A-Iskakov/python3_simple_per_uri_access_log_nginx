@@ -3,6 +3,7 @@ from functools import wraps
 from heapq import nlargest
 
 from telegram import ChatAction, KeyboardButton, ReplyKeyboardMarkup, ParseMode
+from telegram.error import Unauthorized
 
 from database import MAIN_MONGO
 from settings import TELEGRAM_BOT_AUTH_CODE, TOP_MOST_ACCESSED_URIS, USE_FIRESTORE
@@ -53,9 +54,13 @@ def send_stats_on_schedule(context):
 
     if text_message:
         for user_id in MAIN_MONGO.get_telegram_data_from_db().get('ids', None):
-            context.bot.send_message(chat_id=user_id,
+            try:
+                context.bot.send_message(chat_id=user_id,
                                      text=text_message,
                                      parse_mode=ParseMode.HTML)
+            except Unauthorized:
+                MAIN_MONGO.remove_telegram_user_from_db(user_id)
+
     if USE_FIRESTORE:
         stat_data = FirestoreData().get_data_from_firestore()
         messages_data = FireStoreStats().get_stats_from_firestore()
@@ -65,9 +70,12 @@ def send_stats_on_schedule(context):
             for stat, value in stat_data.items():
                 text_message += f'<i>{stat}</i> - <b>{value}</b>\n'
             for user_id in MAIN_MONGO.get_telegram_data_from_db().get('ids', None):
-                context.bot.send_message(chat_id=user_id,
-                                         text=text_message,
-                                         parse_mode=ParseMode.HTML)
+                try:
+                    context.bot.send_message(chat_id=user_id,
+                                             text=text_message,
+                                             parse_mode=ParseMode.HTML)
+                except Unauthorized:
+                    MAIN_MONGO.remove_telegram_user_from_db(user_id)
 
 
 @send_typing_action_decorator

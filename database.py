@@ -46,5 +46,15 @@ class MongoDatabase:
         return self.telegram_bot_collection.find_one(
             {'_id': 'telegram_users'})
 
+    def remove_telegram_user_from_db(self, telegram_user_id):
+        """
+
+        :type telegram_user_id: int
+        """
+        self.telegram_bot_collection.update_one(
+            {'_id': 'telegram_users'},
+            {'$pull': {'ids': telegram_user_id}}
+        )
+
 
 MAIN_MONGO = MongoDatabase()
