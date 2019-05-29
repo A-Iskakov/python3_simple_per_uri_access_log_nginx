@@ -117,11 +117,18 @@ def send_statistics(update, context):
 
     context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.TYPING)
     if USE_FIRESTORE:
-        stat_data = FirestoreData().get_data_from_firestore()
+
         messages_data = FireStoreStats().get_stats_from_firestore()
+        if messages_data:
+            update.message.reply_text(
+                f'<b>{messages_data}</b> <i>chat messages sent last 24 hours</i>\n',
+                parse_mode=ParseMode.HTML)
+
+        stat_data = FirestoreData().get_data_from_firestore()
+
         if stat_data:
             text_message = '<b>Here is usage stats:</b>\n'
-            text_message += f'<b>{messages_data}</b> <i>chat messages sent last 24 hours</i>\n'
+
             for stat, value in stat_data.items():
                 text_message += f'<i>{stat}</i> - <b>{value}</b>\n'
 
